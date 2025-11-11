@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Index from "./pages/Index";
 import Artisans from "./pages/Artisans";
 import Contact from "./pages/Contact";
@@ -15,6 +15,28 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 
 const queryClient = new QueryClient();
+
+// build the future flags object and cast to any to avoid type errors with installed react-router types
+// Build future flags dynamically to avoid TypeScript complaining about unknown object literal properties.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const futureFlags: any = {};
+futureFlags.v7_startTransition = true;
+futureFlags.v7_relativeSplatPath = true;
+
+const router = createBrowserRouter(
+  [
+    { path: "/", element: <Index /> },
+    { path: "/artisans", element: <Artisans /> },
+    { path: "/journey-map", element: <JourneyMap /> },
+    { path: "/stories", element: <Stories /> },
+    { path: "/events", element: <Events /> },
+    { path: "/join", element: <JoinMovement /> },
+    { path: "/contact", element: <Contact /> },
+    { path: "*", element: <NotFound /> },
+  ],
+  // cast options to any because react-router types here may not include these future flags.
+  ({ future: futureFlags } as any)
+);
 
 const App = () => {
   useEffect(() => {
@@ -37,19 +59,8 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/artisans" element={<Artisans />} />
-            <Route path="/journey-map" element={<JourneyMap />} />
-            <Route path="/stories" element={<Stories />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/join" element={<JoinMovement />} />
-            <Route path="/contact" element={<Contact />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        {/* RouterProvider using the prebuilt router (with future flags enabled) */}
+        <RouterProvider router={router} />
       </TooltipProvider>
     </QueryClientProvider>
   );
