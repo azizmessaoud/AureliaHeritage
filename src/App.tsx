@@ -12,7 +12,7 @@ import Stories from "./pages/Stories";
 import Events from "./pages/Events";
 import JoinMovement from "./pages/JoinMovement";
 import { useEffect } from "react";
-import Lenis from "@studio-freight/lenis";
+import Lenis from "lenis";
 
 const queryClient = new QueryClient();
 
