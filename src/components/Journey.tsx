@@ -5,31 +5,31 @@ const journeyStops = [
     city: "Nabeul",
     region: "The Beginning",
     description: "Where pottery meets passion in the heart of artisan markets.",
-    color: "primary",
+    colorClass: "bg-primary",
   },
   {
     city: "Kairouan",
     region: "Sacred Crafts",
     description: "Traditional weaving and carpet-making passed through generations.",
-    color: "secondary",
+    colorClass: "bg-secondary",
   },
   {
     city: "Sfax",
     region: "Coastal Heritage",
     description: "Where copper work and metalcraft shine under Mediterranean sun.",
-    color: "accent",
+    colorClass: "bg-accent",
   },
   {
     city: "Tozeur",
     region: "Desert Patterns",
     description: "Oasis-inspired designs woven into every piece of craftsmanship.",
-    color: "primary",
+    colorClass: "bg-primary",
   },
   {
     city: "Nabeul",
     region: "Full Circle",
     description: "Returning home, carrying forward the traditions of our ancestors.",
-    color: "secondary",
+    colorClass: "bg-secondary",
   },
 ];
 
@@ -60,7 +60,7 @@ const Journey = () => {
               >
                 {/* Timeline dot */}
                 <div className="flex-shrink-0 relative">
-                  <div className={`w-16 h-16 rounded-full bg-${stop.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-16 h-16 rounded-full ${stop.colorClass} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <MapPin className="h-8 w-8 text-primary-foreground" />
                   </div>
                   {index < journeyStops.length - 1 && (

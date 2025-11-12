@@ -25,6 +25,7 @@ const Footer: React.FC = () => {
           <h4 className="font-semibold mb-2">Get Involved</h4>
           <ul className="space-y-1 text-sm text-[#FFF7ED]/90">
             <li><Link to="/join">Join Movement</Link></li>
+            <li><Link to="/schools">For Schools</Link></li>
             <li><Link to="/contact">Contact Us</Link></li>
           </ul>
         </div>

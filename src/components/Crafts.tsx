@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import potteryImg from "@/assets/craft-pottery.jpg";
 import weavingImg from "@/assets/craft-weaving.jpg";
 import olivewoodImg from "@/assets/craft-olivewood.jpg";
@@ -44,8 +45,9 @@ const Crafts = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {crafts.map((craft, index) => (
-            <div
+            <Link
               key={index}
+              to="/artisans"
               className="group relative overflow-hidden rounded-2xl shadow-lg hover-lift cursor-pointer"
             >
               <div className="aspect-square overflow-hidden">
@@ -64,7 +66,7 @@ const Crafts = () => {
                   {craft.description}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -1,5 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AccommodationCard from "@/components/AccommodationCard";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import potteryImg from "@/assets/craft-pottery.jpg";
 import weavingImg from "@/assets/craft-weaving.jpg";
 import olivewoodImg from "@/assets/craft-olivewood.jpg";
@@ -155,6 +158,58 @@ const Artisans = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Nearby Accommodations Section */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-serif font-bold mb-4">Stay Near Our Artisans</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Complete your heritage journey by staying in authentic accommodations near our artisans' workshops
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            {filtered.slice(0, 3).map((artisan, index) => {
+              // Sample nearby accommodations - in production, this would be fetched based on artisan location
+              const nearbyAccommodations = [
+                {
+                  type: "maison-dhote" as const,
+                  name: `Dar near ${artisan.name}`,
+                  location: artisan.region,
+                  rating: 4.7,
+                  reviews: 28 + index * 5,
+                  pricePerNight: 55 + index * 10,
+                  amenities: ["Traditional Meals", "WiFi", "Parking"],
+                  story: `Authentic guesthouse within walking distance of ${artisan.name}'s workshop.`,
+                  rooms: 4 + index,
+                  image: artisan.image,
+                },
+              ];
+
+              return (
+                <div key={index} className="space-y-4">
+                  <div className="text-center mb-4">
+                    <p className="text-sm text-muted-foreground mb-2">Near {artisan.name}</p>
+                    <h3 className="text-lg font-semibold">{artisan.region}</h3>
+                  </div>
+                  {nearbyAccommodations.map((acc, accIdx) => (
+                    <AccommodationCard key={accIdx} {...acc} />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center">
+            <Link to="/accommodations">
+              <Button size="lg" className="bg-[#E27A3F] hover:bg-[#E27A3F]/90">
+                View All Accommodations
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

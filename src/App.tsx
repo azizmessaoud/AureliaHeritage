@@ -11,6 +11,8 @@ import JourneyMap from "./pages/JourneyMap";
 import Stories from "./pages/Stories";
 import Events from "./pages/Events";
 import JoinMovement from "./pages/JoinMovement";
+import Accommodations from "./pages/Accommodations";
+import Schools from "./pages/Schools";
 import { useEffect } from "react";
 import Lenis from "lenis";
 
@@ -27,10 +29,12 @@ const router = createBrowserRouter(
   [
     { path: "/", element: <Index /> },
     { path: "/artisans", element: <Artisans /> },
+    { path: "/accommodations", element: <Accommodations /> },
     { path: "/journey-map", element: <JourneyMap /> },
     { path: "/stories", element: <Stories /> },
     { path: "/events", element: <Events /> },
     { path: "/join", element: <JoinMovement /> },
+    { path: "/schools", element: <Schools /> },
     { path: "/contact", element: <Contact /> },
     { path: "*", element: <NotFound /> },
   ],
