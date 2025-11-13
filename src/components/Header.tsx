@@ -2,6 +2,7 @@ import  { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import SearchBar from "@/components/SearchBar";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -30,18 +31,40 @@ const Header: React.FC = () => {
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((l) => (
+        {/* Search Bar - Mobile */}
+        <div className="flex-1 max-w-md mx-4 md:hidden">
+          <SearchBar placeholder="Search..." className="w-full" />
+        </div>
+
+        <nav className="hidden lg:flex items-center gap-4">
+          {navLinks.slice(0, 4).map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className="px-3 py-1 rounded hover:bg-[#E27A3F] hover:text-white transition-colors"
+              className="px-3 py-1 rounded hover:bg-[#E27A3F] hover:text-white transition-colors text-sm"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Search Bar - Desktop */}
+        <div className="hidden md:flex flex-1 max-w-lg mx-4">
+          <SearchBar placeholder="Search in Arabic, French, or English..." />
+        </div>
+
+        <nav className="hidden lg:flex items-center gap-4">
+          {navLinks.slice(4).map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="px-3 py-1 rounded hover:bg-[#E27A3F] hover:text-white transition-colors text-sm"
             >
               {l.label}
             </Link>
           ))}
           <Link to="/join">
-            <Button className="ml-2">{"Join Movement"}</Button>
+            <Button className="ml-2 text-sm">{"Join Movement"}</Button>
           </Link>
         </nav>
 
@@ -60,19 +83,23 @@ const Header: React.FC = () => {
       {/* Mobile menu panel */}
       {open && (
         <div className="md:hidden bg-background/90 border-t border-border">
-          <div className="container mx-auto px-6 py-4 flex flex-col gap-3">
+          <div className="container mx-auto px-4 sm:px-6 py-4 flex flex-col gap-3">
+            {/* Search in mobile menu */}
+            <div className="mb-2">
+              <SearchBar placeholder="Search..." className="w-full" />
+            </div>
             {navLinks.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
                 onClick={() => setOpen(false)}
-                className="block px-3 py-2 rounded hover:bg-[#E27A3F] hover:text-white"
+                className="block px-3 py-2 rounded hover:bg-[#E27A3F] hover:text-white text-sm sm:text-base"
               >
                 {l.label}
               </Link>
             ))}
             <Link to="/join" onClick={() => setOpen(false)}>
-              <Button className="w-full mt-2">Join Movement</Button>
+              <Button className="w-full mt-2 btn-responsive">Join Movement</Button>
             </Link>
           </div>
         </div>

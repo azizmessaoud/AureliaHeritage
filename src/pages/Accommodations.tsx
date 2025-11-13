@@ -4,6 +4,9 @@ import Footer from "@/components/Footer";
 import AccommodationCard, { AccommodationType } from "@/components/AccommodationCard";
 import GuideCard from "@/components/GuideCard";
 import BundleCard from "@/components/BundleCard";
+import { deepSearchWithFilters } from "@/lib/deepSearch";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -174,33 +177,146 @@ const Accommodations = () => {
   const [region, setRegion] = useState<string>("All");
   const [accommodationType, setAccommodationType] = useState<string>("All");
   const [priceRange, setPriceRange] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // Combine all accommodations for DeepSearch
+  const allAccommodations = useMemo(() => {
+    return [
+      ...maisonsDhote.map(item => ({ 
+        ...item, 
+        id: `maison-${item.name}`,
+        title: item.name, 
+        description: item.story || "",
+        type: "MAISON_DHOTE",
+        price: item.pricePerNight * 100 // Convert to minor units
+      })),
+      ...hotels.map(item => ({ 
+        ...item, 
+        id: `hotel-${item.name}`,
+        title: item.name,
+        description: "",
+        type: "HOTEL",
+        price: item.pricePerNight * 100
+      })),
+      ...campingSites.map(item => ({ 
+        ...item, 
+        id: `camping-${item.name}`,
+        title: item.name,
+        description: "",
+        type: "CAMPING",
+        price: item.pricePerNight * 100
+      })),
+    ];
+  }, []);
+
+  // Apply DeepSearch with filters for Maisons
   const filteredMaisons = useMemo(() => {
-    return maisonsDhote.filter((item) => {
-      if (region !== "All" && item.location !== region) return false;
-      if (priceRange === "Budget" && item.pricePerNight > 60) return false;
-      if (priceRange === "Mid" && (item.pricePerNight <= 60 || item.pricePerNight > 100)) return false;
-      if (priceRange === "Luxury" && item.pricePerNight <= 100) return false;
-      return true;
+    const priceFilter = priceRange === "Budget" 
+      ? { minPrice: 0, maxPrice: 60 * 100 }
+      : priceRange === "Mid"
+      ? { minPrice: 60 * 100, maxPrice: 100 * 100 }
+      : priceRange === "Luxury"
+      ? { minPrice: 100 * 100, maxPrice: Infinity }
+      : {};
+
+    const filtered = deepSearchWithFilters(
+      allAccommodations.filter(item => item.type === "MAISON_DHOTE"),
+      searchQuery,
+      {
+        region: region !== "All" ? region : undefined,
+        ...priceFilter
+      },
+      {
+        threshold: 0.2,
+        weights: { title: 3, location: 2, description: 1.5, tags: 1 }
+      }
+    );
+
+    // Map back to AccommodationCard format
+    return filtered.map((item: any) => {
+      const original = maisonsDhote.find(m => m.name === item.title);
+      return original || {
+        type: "maison-dhote" as AccommodationType,
+        name: item.title,
+        location: item.location,
+        rating: item.rating,
+        reviews: item.reviews,
+        pricePerNight: item.price / 100,
+        amenities: item.amenities,
+        story: item.description,
+        rooms: item.rooms,
+        image: item.image,
+      };
     });
-  }, [region, priceRange]);
+  }, [region, priceRange, searchQuery, allAccommodations]);
 
   const filteredHotels = useMemo(() => {
-    return hotels.filter((item) => {
-      if (region !== "All" && item.location !== region) return false;
-      if (priceRange === "Budget" && item.pricePerNight > 100) return false;
-      if (priceRange === "Mid" && (item.pricePerNight <= 100 || item.pricePerNight > 150)) return false;
-      if (priceRange === "Luxury" && item.pricePerNight <= 150) return false;
-      return true;
+    const priceFilter = priceRange === "Budget" 
+      ? { minPrice: 0, maxPrice: 100 * 100 }
+      : priceRange === "Mid"
+      ? { minPrice: 100 * 100, maxPrice: 150 * 100 }
+      : priceRange === "Luxury"
+      ? { minPrice: 150 * 100, maxPrice: Infinity }
+      : {};
+
+    const filtered = deepSearchWithFilters(
+      allAccommodations.filter(item => item.type === "HOTEL"),
+      searchQuery,
+      {
+        region: region !== "All" ? region : undefined,
+        ...priceFilter
+      },
+      {
+        threshold: 0.2,
+        weights: { title: 3, location: 2, description: 1.5, tags: 1 }
+      }
+    );
+
+    return filtered.map((item: any) => {
+      const original = hotels.find(h => h.name === item.title);
+      return original || {
+        type: "hotel" as AccommodationType,
+        name: item.title,
+        location: item.location,
+        rating: item.rating,
+        reviews: item.reviews,
+        pricePerNight: item.price / 100,
+        amenities: item.amenities,
+        rooms: item.rooms,
+        image: item.image,
+      };
     });
-  }, [region, priceRange]);
+  }, [region, priceRange, searchQuery, allAccommodations]);
 
   const filteredCamping = useMemo(() => {
-    return campingSites.filter((item) => {
-      if (region !== "All" && item.location !== region) return false;
-      return true;
+    const filtered = deepSearchWithFilters(
+      allAccommodations.filter(item => item.type === "CAMPING"),
+      searchQuery,
+      {
+        region: region !== "All" ? region : undefined,
+      },
+      {
+        threshold: 0.2,
+        weights: { title: 3, location: 2, description: 1.5, tags: 1 }
+      }
+    );
+
+    return filtered.map((item: any) => {
+      const original = campingSites.find(c => c.name === item.title);
+      return original || {
+        type: "camping" as AccommodationType,
+        name: item.title,
+        location: item.location,
+        rating: item.rating,
+        reviews: item.reviews,
+        pricePerNight: item.price / 100,
+        amenities: item.amenities,
+        capacity: item.capacity,
+        isGlamping: item.isGlamping,
+        image: item.image,
+      };
     });
-  }, [region]);
+  }, [region, searchQuery, allAccommodations]);
 
   return (
     <div className="min-h-screen">
@@ -223,38 +339,55 @@ const Accommodations = () => {
         </div>
       </section>
 
-      {/* Filters */}
+      {/* Filters & Search */}
       <section className="py-6 bg-muted border-b">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="w-full md:w-1/3">
-              <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Region" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Regions</SelectItem>
-                  <SelectItem value="Nabeul">Nabeul</SelectItem>
-                  <SelectItem value="Kairouan">Kairouan</SelectItem>
-                  <SelectItem value="Sfax">Sfax</SelectItem>
-                  <SelectItem value="Tozeur">Tozeur</SelectItem>
-                  <SelectItem value="Douz">Douz</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search in Arabic (نابل), French, or English..."
+                  className="pl-10 pr-4 py-6 text-base border-2 border-gray-300 focus:border-orange-500 rounded-full w-full"
+                />
+              </div>
             </div>
 
-            <div className="w-full md:w-1/3">
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Price Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Prices</SelectItem>
-                  <SelectItem value="Budget">Budget (&lt; 60 TND)</SelectItem>
-                  <SelectItem value="Mid">Mid (60-100 TND)</SelectItem>
-                  <SelectItem value="Luxury">Luxury (&gt; 100 TND)</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="flex-1 sm:flex-initial sm:w-full sm:max-w-xs">
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Regions</SelectItem>
+                    <SelectItem value="Nabeul">Nabeul / نابل</SelectItem>
+                    <SelectItem value="Kairouan">Kairouan / قيروان</SelectItem>
+                    <SelectItem value="Sfax">Sfax / صفاقس</SelectItem>
+                    <SelectItem value="Tozeur">Tozeur / توزر</SelectItem>
+                    <SelectItem value="Douz">Douz / دوز</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex-1 sm:flex-initial sm:w-full sm:max-w-xs">
+                <Select value={priceRange} onValueChange={setPriceRange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Price Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Prices</SelectItem>
+                    <SelectItem value="Budget">Budget (&lt; 60 TND)</SelectItem>
+                    <SelectItem value="Mid">Mid (60-100 TND)</SelectItem>
+                    <SelectItem value="Luxury">Luxury (&gt; 100 TND)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>
@@ -262,26 +395,26 @@ const Accommodations = () => {
 
       {/* Tabs for different accommodation types */}
       <section className="py-12 bg-background">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="maisons">Maisons d'Hôte</TabsTrigger>
-              <TabsTrigger value="hotels">Hôtels</TabsTrigger>
-              <TabsTrigger value="camping">Camping</TabsTrigger>
-              <TabsTrigger value="guides">Guides</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 mb-8 h-auto">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
+              <TabsTrigger value="maisons" className="text-xs sm:text-sm">Maisons</TabsTrigger>
+              <TabsTrigger value="hotels" className="text-xs sm:text-sm">Hôtels</TabsTrigger>
+              <TabsTrigger value="camping" className="text-xs sm:text-sm hidden sm:block">Camping</TabsTrigger>
+              <TabsTrigger value="guides" className="text-xs sm:text-sm hidden sm:block">Guides</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-12">
               {/* Bundles Section */}
               <div>
                 <div className="text-center mb-8">
-                  <h2 className="text-4xl font-serif font-bold mb-4">Complete Packages</h2>
-                  <p className="text-muted-foreground">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-4">Complete Packages</h2>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     Experience + Accommodation + Guide bundles for a seamless journey
                   </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
                   {bundles.map((bundle, idx) => (
                     <BundleCard key={idx} {...bundle} />
                   ))}
@@ -290,11 +423,11 @@ const Accommodations = () => {
 
               {/* Maisons d'Hôte */}
               <div>
-                <h2 className="text-3xl font-serif font-bold mb-6">🏠 Maisons d'Hôte</h2>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 sm:mb-6">🏠 Maisons d'Hôte</h2>
+                <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                   Traditional family-run guesthouses offering authentic local hospitality
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                   {filteredMaisons.map((maison, idx) => (
                     <AccommodationCard key={idx} {...maison} />
                   ))}
@@ -303,11 +436,11 @@ const Accommodations = () => {
 
               {/* Hotels */}
               <div>
-                <h2 className="text-3xl font-serif font-bold mb-6">🏨 Boutique Hotels</h2>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 sm:mb-6">🏨 Boutique Hotels</h2>
+                <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                   Heritage hotels combining comfort with cultural authenticity
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                   {filteredHotels.map((hotel, idx) => (
                     <AccommodationCard key={idx} {...hotel} />
                   ))}
@@ -316,11 +449,11 @@ const Accommodations = () => {
 
               {/* Camping */}
               <div>
-                <h2 className="text-3xl font-serif font-bold mb-6">⛺ Camping & Glamping</h2>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 sm:mb-6">⛺ Camping & Glamping</h2>
+                <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                   Authentic desert and rural camping experiences
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                   {filteredCamping.map((camp, idx) => (
                     <AccommodationCard key={idx} {...camp} />
                   ))}
@@ -329,11 +462,11 @@ const Accommodations = () => {
 
               {/* Guides */}
               <div>
-                <h2 className="text-3xl font-serif font-bold mb-6">👨‍🏫 Certified Tour Guides</h2>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 sm:mb-6">👨‍🏫 Certified Tour Guides</h2>
+                <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                   Professional guides specializing in heritage, culture, and authentic experiences
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                   {guides.map((guide, idx) => (
                     <GuideCard key={idx} {...guide} />
                   ))}
@@ -342,7 +475,7 @@ const Accommodations = () => {
             </TabsContent>
 
             <TabsContent value="maisons">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredMaisons.map((maison, idx) => (
                   <AccommodationCard key={idx} {...maison} />
                 ))}
@@ -350,7 +483,7 @@ const Accommodations = () => {
             </TabsContent>
 
             <TabsContent value="hotels">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredHotels.map((hotel, idx) => (
                   <AccommodationCard key={idx} {...hotel} />
                 ))}
@@ -358,7 +491,7 @@ const Accommodations = () => {
             </TabsContent>
 
             <TabsContent value="camping">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredCamping.map((camp, idx) => (
                   <AccommodationCard key={idx} {...camp} />
                 ))}

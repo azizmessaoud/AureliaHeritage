@@ -90,6 +90,19 @@ All colors MUST be HSL.
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
   }
+
+  /* Arabic font support */
+  .font-arabic {
+    font-family: 'Amiri', 'Cairo', 'Tajawal', 'Arial', sans-serif;
+    direction: rtl;
+    unicode-bidi: bidi-override;
+  }
+
+  /* RTL support for Arabic text */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
 }
 
 @layer utilities {
@@ -107,5 +120,45 @@ All colors MUST be HSL.
 
   .smooth-reveal.revealed {
     @apply opacity-100 translate-y-0;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive {
+    @apply text-sm sm:text-base md:text-lg lg:text-xl;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl;
+  }
+
+  /* Responsive spacing */
+  .container-responsive {
+    @apply px-4 sm:px-6 md:px-8 lg:px-12;
+  }
+
+  /* Responsive grid */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* Mobile-first card */
+  .card-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  /* Touch-friendly buttons on mobile */
+  .btn-responsive {
+    @apply py-3 sm:py-4 px-6 sm:px-8 text-base sm:text-lg;
+    min-height: 44px; /* iOS touch target */
+  }
+
+  /* Hide on mobile */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    @apply block md:hidden;
   }
 }

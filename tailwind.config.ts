@@ -14,9 +14,20 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'xs': '475px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1400px',
+        '3xl': '1600px',
+      },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
-        serif: ["Playfair Display", "Georgia", "serif"],
+        serif: ["Playfair Display", "Cormorant Garamond", "Georgia", "serif"],
+        heritage: ["Amiri", "Cormorant Garamond", "serif"],
+        arabic: ["Amiri", "Cairo", "Tajawal", "Arial", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

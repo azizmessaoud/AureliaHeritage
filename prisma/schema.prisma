@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String?
+  phone      String?
+  image      String?
+  role       UserRole @default(USER)
+  createdAt  DateTime @default(now())
+  bookings   Booking[]
+  reviews    Review[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  PARTNER
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  userId      String?
+  type        PartnerType
+  name        String
+  description String
+  location    String
+  phone       String?
+  email       String?
+  verified    Int      @default(1) // L1, L2, L3
+  ratings     Float    @default(4.5)
+  createdAt   DateTime @default(now())
+  listings    Listing[]
+  payouts     PartnerPayout[]
+}
+
+enum PartnerType {
+  EXPERIENCE
+  MAISON_DHOTE
+  HOTEL
+  CAMPING
+  GUIDE
+}
+
+model Listing {
+  id           String   @id @default(cuid())
+  partner      Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId    String
+  type         PartnerType
+  title        String
+  description  String   @db.Text
+  location     String
+  amenities    String[] // JSON array
+  price        Int      // in minor units (TND * 100)
+  currency     String   @default("TND")
+  photos       String[] // URLs from Cloudinary
+  rating       Float    @default(4.2)
+  createdAt    DateTime @default(now())
+  availability Availability[]
+  bookings     Booking[]
+  reviews      Review[]
+}
+
+model Availability {
+  id           String   @id @default(cuid())
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId    String
+  date         DateTime @db.Date
+  slots        Int      @default(5)
+  priceOverride Int?    // Dynamic pricing
+  createdAt    DateTime @default(now())
+
+  @@unique([listingId, date])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  listing        Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId      String
+  startAt        DateTime
+  endAt          DateTime
+  guestCount     Int           @default(1)
+  status         BookingStatus @default(PENDING)
+  amount         Int           // Total price (TND * 100)
+  currency       String        @default("TND")
+  specialRequests String?       @db.Text
+  createdAt      DateTime      @default(now())
+  reviews        Review[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  REFUNDED
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId  String   @unique
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId  String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  rating     Int      // 1-5
+  text       String   @db.Text
+  createdAt  DateTime @default(now())
+}
+
+model PartnerPayout {
+  id         String       @id @default(cuid())
+  partner    Partner      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId  String
+  period     DateTime
+  amount     Int
+  status     PayoutStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
